@@ -1,2 +1,8 @@
-# restapi
-Rest project library
+# REST FRAMEWORK
+- DRF
+- Django Rest Framework
+- Rest api
+
+#
+- LEARNING
+- PRACTICE 
