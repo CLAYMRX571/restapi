@@ -1,8 +1,15 @@
 # REST FRAMEWORK
 - DRF
 - Django Rest Framework
-- Rest api
+- REST API
 
 #
 - LEARNING
 - PRACTICE 
+
+# REST API 
+- model
+- serializer
+- view
+- endpoint
+
