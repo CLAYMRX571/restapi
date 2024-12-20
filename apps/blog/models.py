@@ -24,3 +24,17 @@ class Clap(BaseModel):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_claps')
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='article_claps')
     count = models.IntegerField(default=1)
+
+class View(BaseModel):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_views')
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='article_views')
+
+    def __str__(self):
+        return f"{self.author} - views - {self.article}"
+
+class Follow(BaseModel):
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_follows')
+    followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_followers'),
+
+    def __str__(self):
+        return f"{self.author} - follows - {self.followed}"
