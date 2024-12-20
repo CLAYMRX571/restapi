@@ -2,10 +2,11 @@ from django.shortcuts import render
 from rest_framework.viewsets import ViewSet, ModelViewSet
 from .models import Article, Clap, Comment
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView, ListAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from .serializers import ArticleSerializer, ClapSerializer, CommentSerializer
-from rest_framework.permissions import AllowAny 
+from rest_framework.permissions import AllowAny, IsAuthenticated
 # Create your views here.
 
 class ArticleView(CreateAPIView):
@@ -48,16 +49,30 @@ class ArticleAPIView(APIView):
 
     def put(self, request, pk):
         item = self.model.objects.get(id=pk)
-        data = request.data 
-        serializer = self.serializer_class(instance=item, data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(data=serializer.data)
+        if (item.author == request.user):
+            data = request.data 
+            serializer = self.serializer_class(instance=item, data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data=serializer.data)
+        else:
+            data = {
+                'status': False,
+                'message': "Ushbu maqolaning muallifi siz emas!"
+            }
+            raise ValidationError(data)
 
     def delete(self, request, pk):
         item = self.model.objects.get(id=pk)
-        item.delete()
-        return Response({"msg":"successfully deleted!"})
+        if (item.author == request.user):
+            item.delete()
+            return Response({"msg":"successfully deleted!"})
+        else:
+            data = {
+                'status': False,
+                'message': "Ushbu maqolaning muallifi siz emas!"
+            }
+            raise ValidationError(data)
 
 class ArticleListView(APIView):
     serializer_class = ArticleSerializer
@@ -65,18 +80,29 @@ class ArticleListView(APIView):
     model = Article
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(data=serializer.data)
+        if request.user.is_authenticated:
+            data = request.data
+            data['author'] = request.user.id 
+            serializer = self.serializer_class(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(data=serializer.data)
+        else:
+            data = {
+                'status': False,
+                'message': "Siz ro'yxatdan o'tmagansiz!"
+            }
+            raise ValidationError(data)
 
     def get(self, request):
         serializer = self.serializer_class(instance=self.model.objects.all(), many=True)
         return Response(data=serializer.data)
 
 class ClapApiView(APIView):
+    permission_classes = (IsAuthenticated, )
+
     def post(self, request):
-        user_id = request.data.get('author')
+        user_id = request.user.id
         article_id = request.data.get('article')
         claps = Clap.objects.filter(author = user_id, article=article_id)
         if claps.exists():
@@ -93,7 +119,14 @@ class ClapApiView(APIView):
 class CommentCreateView(CreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [AllowAny]
-    queryset = Comment.objects.all()
+
+    def post(self, request):
+        data = request.data
+        data['author'] = request.user.id 
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(data=serializer.data)
 
 class CommentListApiView(ListAPIView):
     serializer_class = CommentSerializer
@@ -102,5 +135,3 @@ class CommentListApiView(ListAPIView):
     def get_queryset(self):
         comments = Comment.objects.filter(article=self.kwargs['pk'])
         return comments
-
-    
