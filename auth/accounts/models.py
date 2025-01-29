@@ -1,4 +1,5 @@
 from django.db import models
+import random
 # Create your models here.
 
 class BaseModel(models.Model):
@@ -8,8 +9,12 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True 
 
+def get_random_price():
+    return random.randint(10000, 999999)
+
 class Article(BaseModel):
     title = models.CharField(max_length=255)
+    price = models.IntegerField(default=get_random_price)
     content = models.TextField()
     author = models.ForeignKey("auth.User", on_delete=models.CASCADE)
 

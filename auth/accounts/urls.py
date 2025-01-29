@@ -1,4 +1,5 @@
 from django.urls import path 
+from accounts.page_views import ArticleListView
 # from . import views
 # from . import token_views as views
 from . import jwt_token as views
@@ -18,4 +19,8 @@ urlpatterns += [
     path('api/token/custom', views.CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+]
+
+urlpatterns += [
+    path('', ArticleListView.as_view())
 ]
