@@ -5,10 +5,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from rest_framework.views import APIView
+from accounts.permissions import IsOwner, IsWorkingHours
 
 class UserInfoView(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly | IsAuthenticated, IsOwner & IsWorkingHours]
     def get(self, request, *args, **kwargs):
         user = request.user
         user_data = {
@@ -23,8 +25,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-    
     def post(self, request):
         tokens = OutstandingToken.objects.filter(user=request.user)
         for token in tokens:
